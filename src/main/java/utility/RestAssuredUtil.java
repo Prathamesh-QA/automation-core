@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import constants.LibraryConstatnts;
 import groovyjarjarantlr4.v4.runtime.misc.NotNull;
+import io.restassured.response.Response;
 import io.restassured.specification.MultiPartSpecification;
 import io.restassured.specification.RequestSpecification;
 
@@ -68,8 +69,66 @@ public class RestAssuredUtil {
         }
     }
 
+    private void updateContentTypeInHeaderMap(Map<String,String> headers, List<MultiPartSpecification> multiPartFile){
+        if(multiPartFile != null && multiPartFile.isEmpty() && headers.containsKey(LibraryConstatnts.CONTENTTYPE_KEY)){
+            headers.put(LibraryConstatnts.CONTENTTYPE_KEY,LibraryConstatnts.CONTENTTYPE_MULTIPART_VALUE);
+        } else if (headers.containsKey(LibraryConstatnts.CONTENTTYPE_KEY)) {
+            headers.put(LibraryConstatnts.CONTENTTYPE_KEY,LibraryConstatnts.CONTENTTYPE_JSON_VALUE);
+        }
+    }
 
+    private void executePatchRequest(String endPoint,RequestSpecification requestSpecification){
+        try {
+            Response response = requestSpecification.patch(endPoint);
+            updateResponseMap(response.statusCode(), response.asString());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
+    private void executeDeleteRequest(String endPoint,RequestSpecification requestSpecification){
+        try {
+            Response response = requestSpecification.delete(endPoint);
+            updateResponseMap(response.statusCode(), response.asString());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void executeGetRequest(String endPoint,RequestSpecification requestSpecification){
+        try {
+            Response response = requestSpecification.get(endPoint);
+            updateResponseMap(response.statusCode(), response.asString());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void executePostRequest(String endPoint,RequestSpecification requestSpecification,String payload,
+                                    List<MultiPartSpecification> multiPartSpecifications){
+        try {
+            if(!(multiPartSpecifications == null || multiPartSpecifications.isEmpty())){
+                for (MultiPartSpecification multiPartSpecification : multiPartSpecifications){
+                    requestSpecification.multiPart(multiPartSpecification);
+                }
+            }else {
+                requestSpecification = requestSpecification.body(payload);
+            }
+            Response response = requestSpecification.post(endPoint);
+            updateResponseMap(response.statusCode(), response.asString());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void executePutRequest(String endPoint,RequestSpecification requestSpecification,String payload){
+        try {
+            Response response = requestSpecification.body(payload).put(endPoint);
+            updateResponseMap(response.statusCode(), response.asString());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
 
 }
